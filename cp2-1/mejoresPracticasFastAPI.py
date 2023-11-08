@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from starlette.responses import PlainTextResponse
+import json
 
 app = FastAPI()
 
@@ -15,6 +16,7 @@ def get_elemento_from_list(id: int, elementos: list):
         return None
 
 @app.get("/api/elementos/{id}", response_model=Elemento)
+#@app.get("/api/elementos/{id}",response_model=PlainTextResponse)
 def get_elemento(id: int):
     elementos = [ Elemento(id=1, nombre="elemento1"), 
                  Elemento(id=2, nombre="elemento2"), 
@@ -25,6 +27,8 @@ def get_elemento(id: int):
         raise HTTPException(status_code=404, detail="Elemento no encontrado")
 
     return elemento
+    #return PlainTextResponse(elemento.nombre)
+
 
 @app.get("/api/elementos", response_model=list[Elemento])
 def get_elementos():
@@ -55,6 +59,8 @@ def error_500():
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc):
     return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
+    #return json({"error": exc.detail}, status_code=exc.status_code)
+
 
 if __name__ == '__main__':
     import uvicorn
