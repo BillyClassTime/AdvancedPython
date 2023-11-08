@@ -30,5 +30,19 @@ pip install graphene flask flask-graphql
 pip install --upgrade graphene flask flask-graphql
 ```
 
+`cp1-FP`
+
+```
+py -m pip install --upgrade pip
+pip install psycopg2 flask
+```
+
+`cp2-1`
+
+```
+py -m pip install --upgrade pip
+pip install fastapi pydantic starlette
+```
+
 
 
