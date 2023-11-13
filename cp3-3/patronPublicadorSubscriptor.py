@@ -3,7 +3,7 @@ import aio_pika
 from fastapi import FastAPI, HTTPException
 
 class PatronSubscritorPublicador:
-    def __init__(self, connection_string='amqp://su_usuario:suclave@localhost/'):
+    def __init__(self, connection_string='amqp://manager:P455w0rd1234@172.191.110.21/'):
         self.connection_string = connection_string
         self.connection = None
 
@@ -34,7 +34,7 @@ class PatronSubscritorPublicador:
             await queue.bind(exchange)
             await exchange.publish(aio_pika.Message(body=message.encode()), routing_key='')
 
-    async def consume_messages(self, callback, queue_name='queue1'):
+    async def consume_messages(self, queue_name='queue1'):
         mensajes_recibidos = []
         async with self.connection.channel() as channel:
             try:
@@ -75,7 +75,7 @@ async def handle_messages(message):
         
 async def consume_message(queue_name='queue1'):
     async with PatronSubscritorPublicador() as pubsub:
-        return await pubsub.consume_messages(callback=handle_messages, queue_name=queue_name)
+        return await pubsub.consume_messages(queue_name=queue_name)
 
 @app.get("/recibir/{queue_name}")
 async def recibir(queue_name: str):
