@@ -1,9 +1,12 @@
 #conexión a RabbitMQ
+#py -m pip install --upgrade pip
+#pip install pika
 import pika
-usuario = "admin"
-clave = "admin2017"
+usuario = "manager"
+clave = "su clave"
+host="su ip o fqdn"
 credenciales = pika.PlainCredentials(usuario, clave)
-parametros = pika.ConnectionParameters('localhost', 5672, 
+parametros = pika.ConnectionParameters(host, 5672, 
                                        '/', credenciales)
 conexion = pika.BlockingConnection(parametros)
 channel = conexion.channel()

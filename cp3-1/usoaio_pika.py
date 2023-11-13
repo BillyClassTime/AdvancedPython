@@ -1,3 +1,4 @@
+#pip install aio_pika
 import asyncio
 import aio_pika
 
@@ -33,9 +34,9 @@ async def consume_messages(channel, queue_name, stop_message="", task=None):
         await queue.delete()
 
 async def main():
-    connection = await aio_pika.connect_robust(
-        "amqp://admin:admin2017@localhost/"
-    )
+    string_connection= "amqp://manager:su_clave@fqdn/"
+
+    connection = await aio_pika.connect_robust(string_connection)
 
     channel = await connection.channel()
 
