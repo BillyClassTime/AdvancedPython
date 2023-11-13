@@ -1,10 +1,11 @@
+#pip install fastapi, aio-pika, uvicorn
 from fastapi import FastAPI, HTTPException
 import aio_pika
 from fastapi.responses import JSONResponse
 
 class RabbitMQ:
     def __init__(self):
-        self.connection_string = 'amqp://admin:su_clave@localhost/'
+        self.connection_string = 'amqp://manager:P455w0rd1234@172.191.110.21/'
         self.connection = None
 
     async def connect(self):
@@ -89,7 +90,6 @@ async def publicar_mensaje(mensaje: str):
         raise HTTPException(status_code=500, detail=f"publicando el mensaje:{str(e)}")
     finally:
         await rabbitmq.close()
-
 
 @app.exception_handler(Exception)
 async def generic_exception_handler(request, exc):
