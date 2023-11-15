@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status # pip install fastapi uvicorn[standard]
 from fastapi.security import OAuth2PasswordBearer
 import jwt #pip install PyJWT
 from datetime import datetime, timedelta
@@ -38,6 +38,7 @@ def get_current_user(token: str = Depends(OAuth2PasswordBearer(tokenUrl="token")
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",headers={"WWW-Authenticate": "Bearer"})
     try:
+        print("Inicio")
         # 1. Decodificar el token usando PyJWT y verificar la firma
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         # 2. Obtener el nombre de usuario desde el payload
