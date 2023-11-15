@@ -5,6 +5,7 @@ from fastapi.security import OAuth2PasswordBearer
 import jwt #pip install PyJWT
 from datetime import datetime, timedelta
 from typing import Optional
+from jwt import InvalidTokenError
 
 #modelo de datos
 class Token(pydantic.BaseModel):
@@ -55,7 +56,7 @@ def get_current_user(token: str = Depends(OAuth2PasswordBearer(tokenUrl="token")
             raise credentials_exception
     except jwt.ExpiredSignatureError:# 4. Manejar el caso en que el token ha expirado
         raise credentials_exception
-    except jwt.JWTError:             # 5. Manejar el caso en que el token no es válido        
+    except InvalidTokenError:             # 5. Manejar el caso en que el token no es válido        
         raise credentials_exception
     # 6. Devolver el nombre de usuario si la validación ha sido exitosa
     return username
@@ -78,4 +79,14 @@ def protected_route(current_user: str = Depends(get_current_user)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8100)
+
+# curl -X POST "http://localhost:8100/token?username=billy&password=p455wr0d1234"
+#    Respuesta:
+#    {"access_token":"header.body.signature","token_type":"bearer"}
+# Con el cambio del BaseModel deberá llamarse la ruta "/token" asi:
+# curl -X POST "http://localhost:8000/token" -H "accept: application/json" -H "Content-Type: application/json" -d '{"usuario":"billy","clave":"p455wr0d1234"}'
+# 
+# curl -L -X GET "http://localhost:8100/protected/" -H "accept: application/json" -H "Authorization: Bearer Token<header.body.signature>", sin Token<> unicamnete el token 
+#    Respuesta:
+#    El {"message":"Hello, billy! This is a protected route."}

@@ -48,3 +48,21 @@ Implementar
     - [ ] Agrupar en el módulo `core`las funciones esenciales relacionadas con la seguridad para facilitar la gestión
 
         
+    
+    ### Pruebas con scripts de powershell
+    
+    ```powershell
+    .\test_api.ps1 -usuario billy -clave <su_clave>
+    ```
+    
+    ```powershell
+    Error al realizar la solicitud: {"detail":"Credenciales incorrectas"}
+    ```
+    
+    ```powershell
+    .\test_api_token.ps1 -token <token>
+    ```
+    
+    
+
+ 

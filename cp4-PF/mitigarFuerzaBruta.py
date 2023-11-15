@@ -54,6 +54,7 @@ async def login(data: Data):
         return {"access_token": token, "token_type": "bearer"}
     else:
         # Incrementar el contador de intentos fallidos
+        print("Incrementar el contador de intentos fallidos")
         failed_login_store.setdefault(data.username, 
                                       {'password': hash_password(data.password), 
                                        'attempts': 0, 'timestamp': time.time()})
