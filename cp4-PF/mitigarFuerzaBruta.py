@@ -1,5 +1,6 @@
 #py -m pip install --upgrade pip
-#pip install fastapi uvicorn[standard] fastapi-limiter cachetools
+#pip install fastapi uvicorn[standard] 
+#No lo vamos a instalar fastapi-limiter cachetools
 
 import time
 from fastapi import FastAPI, HTTPException, Depends, status, Body
@@ -71,4 +72,4 @@ async def get_clients(current_user: dict = Depends(get_current_user)):
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=8000)
+    uvicorn.run(app, host='0.0.0.0', port=8060)
