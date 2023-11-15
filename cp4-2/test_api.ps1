@@ -16,7 +16,7 @@ $body = @{
     password = $clave
 } | ConvertTo-Json
 
-$url = "http://192.168.88.50:8000/token"
+$url = "http://localhost:8000/token"
 
 try {
     $response = Invoke-RestMethod -Uri $url -Method Post -Headers $headers -Body $body

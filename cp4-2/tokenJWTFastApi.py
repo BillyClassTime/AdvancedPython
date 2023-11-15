@@ -1,8 +1,15 @@
-from fastapi import FastAPI, Depends, HTTPException, status # pip install fastapi uvicorn[standard]
+from fastapi import FastAPI, Depends, HTTPException, status
+import pydantic #pip install pydantic
+ # pip install fastapi uvicorn[standard]
 from fastapi.security import OAuth2PasswordBearer
 import jwt #pip install PyJWT
 from datetime import datetime, timedelta
 from typing import Optional
+
+#modelo de datos
+class Token(pydantic.BaseModel):
+    usuario: str
+    clave: str
 
 app = FastAPI()
 
@@ -55,14 +62,20 @@ def get_current_user(token: str = Depends(OAuth2PasswordBearer(tokenUrl="token")
 
 # Ruta para obtener un token
 @app.post("/token")
-def login(username: str, password: str):
+#def login(username: str, password: str):
+def login(token: Token):
     # Aquí deberías realizar la autenticación del usuario y verificar las credenciales
     # Por simplicidad, este ejemplo asume que el usuario y la contraseña son correctos
     expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_jwt_token(data={"sub": username}, expires_delta=expires)
+    #access_token = create_jwt_token(data={"sub": token.get(username}, expires_delta=expires)
+    access_token = create_jwt_token(data={"sub": token.usuario}, expires_delta=expires)
     return {"access_token": access_token, "token_type": "bearer"}
 
 # Ruta protegida que requiere un token válido
 @app.get("/protected")
 def protected_route(current_user: str = Depends(get_current_user)):
     return {"message": f"Hello, {current_user}! This is a protected route."}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
