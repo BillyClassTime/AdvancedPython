@@ -1,7 +1,7 @@
-from fastapi import FastAPI,  Depends
+from fastapi import APIRouter,  Depends
 from core.security import get_current_user
 
-router=FastAPI()
+router=APIRouter()
 
 @router.get("/clientes")
 async def get_clients(current_user: dict = Depends(get_current_user)):

@@ -1,14 +1,13 @@
-from fastapi import FastAPI,  HTTPException,status
+from fastapi import APIRouter,  HTTPException,status
 from core.security import failed_login_store,hash_password,token_store
 import secrets, time
-
 from pydantic import BaseModel
+
+router=APIRouter()
 
 class Data(BaseModel):
     username: str
     password: str
-
-router=FastAPI()
 
 @router.post("/token")
 async def login(data: Data):
