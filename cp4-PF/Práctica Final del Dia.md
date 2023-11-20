@@ -27,7 +27,7 @@ Implementar
 
     - [ ]    `core`, contendrá el módulo `security.py`con las funciones relacionadas con la seguridad, como el hash de contraseñas y la validación de tokens
 
-    - [ ]    `test`, contendrá las pruebas unitarias relacionadas con el código
+    - [ ]    `test`, contendrá las pruebas unitarias relacionadas con el código se realizarán en `unittest` y las llamaremos `unit.py`
 
 - [ ] Estandares de Seguridad
 
@@ -63,6 +63,15 @@ Implementar
     .\test_api_token.ps1 -token <token>
     ```
     
-    
+- [ ] ### Pruebas unitarias
+
+    - [ ] Incluir un fichero de unit.py con la preubas en unittest
+
+    - [ ] Ejecutar las pruebas desde la raiz así:
+
+        ```
+        py -m unittest discover -v -s test -p unit.py
+        ```
+
 
  
