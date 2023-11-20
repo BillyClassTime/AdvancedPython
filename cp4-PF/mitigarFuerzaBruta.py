@@ -5,8 +5,8 @@
 import time
 from fastapi import FastAPI, HTTPException, Depends, status, Body
 from fastapi.security import OAuth2PasswordBearer
-from pydantic import BaseModel
 import hashlib
+from pydantic import BaseModel
 import secrets
 
 app = FastAPI()
