@@ -2,7 +2,7 @@ import asyncio
 from azure.servicebus.aio import ServiceBusClient
 from azure.servicebus import ServiceBusMessage
 
-NAMESPACE_CONNECTION_STR = "Endpoint=sb://curso01python2023.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=/y8TMT8M9ilN58m7b3s7BFq5+t+78f8xY+ASbAH4r84="
+NAMESPACE_CONNECTION_STR = "CONNECTION STRING"
 QUEUE_NAME = "my-cola"
 
 async def send_single_message(sender):

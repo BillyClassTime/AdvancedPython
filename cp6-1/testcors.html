@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test CORS</title>
+</head>
+<body>
+    <h1>Test CORS</h1>
+    <button id="testButton">Test Request</button>
+
+    <script>
+        document.getElementById('testButton').addEventListener('click', function() {
+            fetch('http://192.168.88.50:8000/data')
+                .then(response => {
+                    // Muestra los encabezados de la respuesta en la consola del navegador
+                    console.log('Headers de la respuesta:', response.headers);
+                    return response.json();
+                })
+                .then(data => console.log('Datos de la respuesta:', data))
+                .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>

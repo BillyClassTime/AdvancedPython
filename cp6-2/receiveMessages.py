@@ -1,10 +1,7 @@
 import asyncio
 from azure.servicebus.aio import ServiceBusClient
-#NAMESPACE_CONNECTION_STR = "Endpoint=sb://[namepace].servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=[KEY]"
-#QUEUE_NAME = "Queue name"
-
-NAMESPACE_CONNECTION_STR = "Endpoint=sb://curso01python2023.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=/y8TMT8M9ilN58m7b3s7BFq5+t+78f8xY+ASbAH4r84="
-QUEUE_NAME = "my-cola"
+NAMESPACE_CONNECTION_STR = "Endpoint=sb://[namepace].servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=[KEY]"
+QUEUE_NAME = "Queue name"
 
 async def run():
     # create a Service Bus client using the connection string
