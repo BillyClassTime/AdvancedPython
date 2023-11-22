@@ -26,7 +26,6 @@
    py main.py
    ```
 
-   
 
 ## Casos de prueba
 
@@ -124,8 +123,6 @@ pm.test("Obtener Clientes", function () {
     });
 });
 ```
-
-
 
 ### test_max_failed_attempts
 

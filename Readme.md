@@ -17,14 +17,14 @@ env/Scripts\activate.ps1
 
 `cp1-1`
 
-```
+```powershell
 py -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
 `cp1-2` 
 
-```
+```powershell
 py -m pip install --upgrade pip
 pip install graphene flask flask-graphql
 pip install --upgrade graphene flask flask-graphql
@@ -32,16 +32,66 @@ pip install --upgrade graphene flask flask-graphql
 
 `cp1-FP`
 
-```
+```powershell
 py -m pip install --upgrade pip
 pip install psycopg2 flask
 ```
 
 `cp2-1`
 
-```
+```powershell
 py -m pip install --upgrade pip
 pip install fastapi pydantic starlette
+```
+
+cp3-1
+
+```powershell
+py -m pip install --upgrade pip
+pip install aiormq, pika
+```
+
+cp3-2
+
+```powershell
+py -m pip install --upgrade pip
+pip install aio-pika, fastapi, pydanctic, starlette uvicorn
+```
+
+cp3-3
+
+```powershell
+py -m pip install --upgrade pip
+pip install aio-pika, fastapi, pydanctic, starlette, uvicorn
+```
+
+cp4-1
+
+```powershell
+```
+
+cp4-2
+
+```powershell
+```
+
+cp4-PF
+
+```powershell
+```
+
+cp6-2
+
+```powershell
+py -m pip install --upgrade pip
+pip install azure-servicebus
+```
+
+cp6-PF
+
+```
+py -m pip install --upgrade pip
+pip install fastapi azure-servicebus uvicorn
 ```
 
 
