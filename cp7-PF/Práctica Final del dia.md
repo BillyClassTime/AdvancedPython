@@ -425,16 +425,6 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
      from main import app
      
      class TestSecurityRoutes(unittest.TestCase):
-         token = None
-         
-         @classmethod
-         def setUpClass(cls):
-             cls.client = TetstClient(app)
-             username = os.getenv("USERNAME")
-             password = os.getenv("PASSWORD")
-             response = cls.client.post(f"/token?username={username}&password={password}")   
-             cls.token  = response.json()["access_token"]
-         
          def setUp(self):
              self.client = TestClient(app)
      
@@ -446,6 +436,14 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
              self.assertIn("access_token", response.json())
      
      class TestRabbitMQRoutes(unittest.TestCase):
+          token = None    
+         @classmethod
+         def setUpClass(cls):
+             cls.client = TetstClient(app)
+             username = os.getenv("USERNAME")
+             password = os.getenv("PASSWORD")
+             response = cls.client.post(f"/token?username={username}&password={password}")   
+             cls.token  = response.json()["access_token"]
          def setUp(self):
              self.client = TestClient(app)
      
@@ -467,7 +465,7 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
      if __name__ == "__main__":
          unittest.main() 
      ```
-   
+     
    - Ejecutar las pruebas
    
      ```powershell
@@ -500,7 +498,7 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
    | ------------ | ---------------------- |
    | api_url      | http://localhost:15000 |
    | username_api | <su usuario>           |
-   | password_api | <su contraseña>        |
+   | c            | <su contraseña>        |
    
 4. Crear Solicitudes
 
@@ -519,8 +517,8 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
    
      ```
      Params:
-     username {{username}}
-     password {{rabbitmq_password}}
+     username {{username_api}}
+     password {{username_api}}
      ```
      
    - **Enviar Mensaje**

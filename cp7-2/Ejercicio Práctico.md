@@ -44,9 +44,8 @@
 
      ```powershell
      py -m pip install --upgrade pip
-     pip install fastapi uvicorn aio_pika python-dotenv httpx pyjwt
+     pip install fastapi uvicorn aio_pika python-dotenv httpx pyjwt asynctest
      ```
-
 
    - cree las variables del entorno en su fichero .env
 
@@ -59,9 +58,12 @@
      SECRET_KEY = "mikeysecreta"
      ALGORITHM = "HS256"
      ACCESS_TOKEN_EXPIRE_MINUTES = 30
+     USERNAME = "Billy"
+     PASSWORD = "P4w0rd1234"
      ```
 
 2. Crear los servicios
+
    - Los servicios que gestionarán la seguridad OAuth2 y JWT
 
      ```python
@@ -187,7 +189,7 @@
       ```
       
       
-
+   
 3. Crear Excepciones personalizadas
 
    - Cree las excepciones personalizadas del proyecto
@@ -513,25 +515,19 @@
    
      **url** `{{api_url}}/publicar/NuevoMensaje`
 
-     ```tex
+     ```
      Authorization:
      <TOKEN>
      ```
-   
-     
-   
-   - 03-Consumir Mensajes
-   
-     `GET` **Consumir Mensaje**
+   - **consumir**
+     `GET` **consumir**
    
      **url** `{{api_url}}/consumir`
      
-     ```tex
-     Authorization
-     <TOKEN
      ```
-     
-     
+     Authorization
+     <TOKEN>
+     ```
 
 ### 4. Automatización de solicitudes
 
@@ -553,7 +549,6 @@
        pm.response.to.have.status(200);
      });
      ```
-   
    - **Test** en **publicar** `POST` **publicar**
    
      ```javascript
@@ -563,11 +558,11 @@
      ```
    
    - **Auth** en **publicar** 
-   
+     
      ```json
-    {{token}}
+     {{token}}
      ```
-
+     
    - **Tests** en **consumir** `GET` **consumir**
    
      ```javascript
@@ -575,7 +570,7 @@
        pm.response.to.have.status(200);
      });
      ```
-   
+     
    - **Auth** en **consumir**
    
      ```json

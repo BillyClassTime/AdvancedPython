@@ -118,7 +118,7 @@ pip install fastapi uvicorn jinja2 httpx pyjwt python-dotenv
 middleware
 
 ```
-pip install fastapi uvicorn python-dotenv aio_pika httpx pyjwt
+pip install fastapi uvicorn python-dotenv aio_pika httpx pyjwt asynctest
 ```
 
 
