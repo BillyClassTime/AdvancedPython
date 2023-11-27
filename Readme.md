@@ -73,6 +73,7 @@ cp4-1
 cp4-2
 
 ```powershell
+pip install fastapi pyjwt uvicorn
 ```
 
 cp4-PF
@@ -92,6 +93,32 @@ cp6-PF
 ```
 py -m pip install --upgrade pip
 pip install fastapi azure-servicebus uvicorn
+```
+
+cp7-1
+
+``` 
+pip install fastapi uvicorn aio_pika python-dotenv httpx
+```
+
+cp7-2
+
+```powershell
+pip install fastapi uvicorn aio_pika python-dotenv httpx pyjwt asynctest
+```
+
+cp7-PF
+
+front-end
+
+```powershell
+pip install fastapi uvicorn jinja2 httpx pyjwt python-dotenv
+```
+
+middleware
+
+```
+pip install fastapi uvicorn python-dotenv aio_pika httpx pyjwt
 ```
 
 
