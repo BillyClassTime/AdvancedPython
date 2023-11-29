@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" href="{{ url_for('static', path='favicon.ico') }}" type="image/x-icon">
+</head>
+
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-6">
+                <form id="loginForm" style="display: none;">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" class="form-control" id="username" required>
+                        <label for="password">Password:</label>
+                        <input type="password" class="form-control" id="password" required>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="login()">Login</button>
+                </form>
+                <button id="loginLogoutButton" type="button" class="btn btn-primary" style="display: block;"
+                    onclick="toggleLoginLogout()">Login</button>
+            </div>
+        </div>
+
+        <div id="content" style="display: none;">
+            <div class="mt-4">
+                <h2>Receive Message</h2>
+                <form id="receiveMessageForm">
+                    <div class="form-group">
+                        <label for="message">Message:</label>
+                        <textarea class="form-control" id="messageReceive" rows="5" readonly
+                            style="font-size: 24px;"></textarea>
+                    </div>
+                    <button id="receiveButton" type="button" class="btn btn-info" onclick="receiveMessage()">Receive
+                        Message</button>
+                </form>
+            </div>
+            <div class="mt-4">
+                <h2>Send Message</h2>
+                <form id="sendMessageForm">
+                    <div class="form-group">
+                        <label for="message">Message:</label>
+                        <input type="text" class="form-control" id="messageSend" required>
+                    </div>
+                    <button id="sendButton" type="button" class="btn btn-info" onclick="sendMessage()">Send
+                        Message</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        let isLoggedIn = false;
+        let shownMessages = new Set();
+        let messageInterval; 
+
+        function toggleLoginLogout() {
+            const loginForm = document.getElementById("loginForm");
+            const loginLogoutButton = document.getElementById("loginLogoutButton");
+            const content = document.getElementById("content");
+
+            if (isLoggedIn) {
+                // Si el usuario está conectado, ocultar el formulario y cambiar el texto del botón a "Show Login"
+                loginForm.style.display = "none";
+                loginLogoutButton.textContent = "Login";
+                content.style.display = "none";
+                sessionStorage.removeItem('token');
+                clearInterval(messageInterval);
+            } else {
+                // Si el usuario no está conectado, mostrar el formulario y cambiar el texto del botón a "Logout"
+                loginForm.style.display = "block";
+                loginLogoutButton.style.display = "none";
+            }
+
+            isLoggedIn = !isLoggedIn;
+
+        }
+
+        function login() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const loginButton = document.getElementById("loginLogoutButton");
+
+            const encodedUsername = encodeURIComponent(username);
+            const encodedPassword = encodeURIComponent(password);
+
+            loginButton.disabled = true;
+
+            const url = `/login?username=${encodedUsername}&password=${encodedPassword}`;
+
+            fetch(url, {
+                method: 'POST',
+            })
+                .then(response => response.json())
+                .then(data => {
+                    sessionStorage.setItem('token', data.access_token);
+                    console.log(data.access_token);
+                    //showContent();
+                    document.getElementById("content").style.display = "block";
+                    document.getElementById("loginForm").style.display = "none";
+                    const loginLogoutButton = document.getElementById("loginLogoutButton");
+                    loginLogoutButton.textContent = "Logout";
+                    loginLogoutButton.style.display = "block";
+                    isLoggedIn = true;
+                    messageInterval = setInterval(receiveMessage, 10000);
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                })
+                .finally(() => {
+                    loginButton.disabled = false;
+                });
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById("messageSend");
+            const message = messageInput.value;
+            const sendButton = document.getElementById("sendButton");
+
+            sendButton.disabled = true;
+            var token = sessionStorage.getItem('token');
+            console.log(token);
+            const url = `/sendmessage/${message}`;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                })
+                .finally(() => {
+                    sendButton.disabled = false;
+                    messageInput.value = "";
+                });
+        }
+
+        function receiveMessage() {
+            const receiveButton = document.getElementById("receiveButton");
+
+            receiveButton.disabled = true;
+
+            var token = sessionStorage.getItem('token');
+            console.log(token);
+            const url = '/receivemessage';
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    const textarea = document.getElementById('messageReceive');
+                    if (data.mensajes) {
+                        data.mensajes.forEach(message => {
+                            if (!shownMessages.has(message)) {
+                                textarea.value += message + '\n';
+                                shownMessages.add(message);
+                            }
+                        });
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                })
+                .finally(() => {
+                    receiveButton.disabled = false;
+                });
+        }
+    </script>
+
+</body>
+
+</html>

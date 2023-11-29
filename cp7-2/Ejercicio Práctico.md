@@ -519,9 +519,11 @@
      Authorization:
      <TOKEN>
      ```
+     
    - **consumir**
+     
      `GET` **consumir**
-   
+     
      **url** `{{api_url}}/consumir`
      
      ```
@@ -591,10 +593,10 @@
    
    - Revise el resumen detallado
    
+     ![](img/04.png)
+   
 
-  ![](img\04.png)
-
-
+  
 
 # Conclusiones
 

@@ -28,6 +28,7 @@ class RabbitMQ:
         try:
             async with self.connection.channel() as channel:
                 queue = await channel.declare_queue('mis_mensajes',durable=True)
+                #channel.enable_publisher_confirms()
                 await channel.default_exchange.publish(
                     aio_pika.Message(body=mensaje.encode(),
                                      delivery_mode=aio_pika.DeliveryMode.PERSISTENT, # El mensaje se guarda en disco
@@ -35,6 +36,7 @@ class RabbitMQ:
                                      expiration=360000), # Tiempo en milisegundos antes de que el mensaje
                     routing_key='mis_mensajes',timeout=30
                 )
+                #channel.publisher_confirms()
         except aio_pika.exceptions.AMQPError as e:
             errorMensaje="Error al publicar mensaje en RabbitMQ"
             print(f"{errorMensaje}: {str(e)}")

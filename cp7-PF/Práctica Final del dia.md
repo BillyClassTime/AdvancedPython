@@ -497,8 +497,8 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
    | Variable     | Initial Value          |
    | ------------ | ---------------------- |
    | api_url      | http://localhost:15000 |
-   | username_api | <su usuario>           |
-   | c            | <su contraseña>        |
+   | username_api | su usuario           |
+   | password_api | su contraseña        |
    
 4. Crear Solicitudes
 
@@ -518,7 +518,7 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
      ```
      Params:
      username {{username_api}}
-     password {{username_api}}
+     password {{password_api}}
      ```
      
    - **Enviar Mensaje**
