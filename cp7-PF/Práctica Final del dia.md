@@ -571,7 +571,7 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
    - **Test** en **Enviar Mensaje** `POST` **Send Message**
    
      ```javascript
-     pm.test("Obtener token", function () {
+     pm.test("Enviar mensajes", function () {
        pm.response.to.have.status(200);
      });
      ```
@@ -579,7 +579,7 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
    - **Tests** en **Recibir Mensaje** `GET` **Receive Message**
    
      ```javascript
-     pm.test("Obtener token", function () {
+     pm.test("Recibir mensajes", function () {
        pm.response.to.have.status(200);
      });
      ```

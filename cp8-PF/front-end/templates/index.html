@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request analisis App</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" href="{{ url_for('static', path='favicon.ico') }}" type="image/x-icon">
+</head>
+
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-6">
+                <form id="loginForm" class="d-none">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" class="form-control" id="username" required>
+                        <label for="password">Password:</label>
+                        <input type="password" class="form-control" id="password" required>
+                        <label for="role">Role:</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="role" id="user" value="user" checked>
+                            <label class="form-check-label" for="user">
+                                User
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="role" id="analyst" value="analyst">
+                            <label class="form-check-label" for="analyst">
+                                Analyst
+                            </label>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary">Login</button>
+                </form>
+                <button id="loginLogoutButton" type="button" class="btn btn-primary">Login</button>
+            </div>
+        </div>
+        <div id="content" class="d-none">
+            <div id="analisist" class="d-none">
+                <div clas="alert alert-primary" role="alert">
+                    <label for="idInput" class="form-control">Id solicitud</label>
+                    <input type="text" class="form-control" id="idInput" placeholder="Enter id_request">
+                </div>
+                <div class="mt-4">
+                    <h2>Receive Message for analisis</h2>
+                    <form id="receiveMessageFormAnalist">
+                        <div class="form-group">
+                            <label for="analistMessageReceive">Message:</label>
+                            <textarea class="form-control" id="analistMessageReceive" rows="5" readonly
+                                style="font-size: 24px;"></textarea>
+                        </div>
+                        <button id="receiveButtonAnalist" type="button" class="btn btn-info">Receive
+                            Message</button>
+                    </form>
+                </div>
+                <div class="mt-4">
+                    <h2>Send Answer of the analisys result</h2>
+                    <form id="sendMessageFormAnalist">
+                        <div class="form-group">
+                            <label for="analisisMessageSend">Message:</label>
+                            <input type="text" class="form-control" id="analisisMessageSend"
+                                value='{"analisis_mensaje":"Nombre: Juan, Edad: 30, Ciudad: Madrid","fecha_análisis":"2021-05-01 12:00:00","analista":"Analista 1","resultado":"Nombres de personas: 1, Nombres de ciudades: 1, Edades: 1"}'
+                                required>
+                        </div>
+                        <button id="sendButtonAnalist" type="button" class="btn btn-info">Send
+                            Message</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="users" class="d-none">
+                <div clas="alert alert-primary" role="alert">
+                    <label for="idLabel" class="form-control">Id solicitud</label>
+                    <input type="text" class="form-control" id="idLabel">
+                </div>
+                <div class="mt-4">
+                    <h2>Send Message for Analisis</h2>
+                    <form id="sendMessageFormUser">
+                        <div class="form-group">
+                            <label for="userMessageSend">Message:</label>
+                            <input type="text" class="form-control" id="userMessageSend"
+                                value='{"nombre": "Juan", "edad": 30, "ciudad": "Madrid"}' required>
+                        </div>
+                        <button id="sendButtonUser" type="button" class="btn btn-info">Send
+                            Message</button>
+                    </form>
+                </div>
+                <div class="mt-4">
+                    <h2>Receive final analysis result</h2>
+                    <form id="receiveMessageFormUser">
+                        <div class="form-group">
+                            <label for="userMessageReceive">Message:</label>
+                            <textarea class="form-control" id="userMessageReceive" rows="5" readonly
+                                style="font-size: 24px;"></textarea>
+                        </div>
+                        <button id="receiveButtonUser" type="button" class="btn btn-info">Receive Message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="footer mt-auto py-3">
+        <div class="card">
+            <div class="card-header">
+                Estado
+            </div>
+            <div class="card-body">
+                <h5 id="status" class="card-title">Logout</h5>
+            </div>
+        </div>
+    </footer>
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+
+        let isLoggedIn = false;
+
+        const users = document.getElementById("users");
+        const analisist = document.getElementById("analisist");
+        const estado = document.getElementById("status");
+
+        const usernameInput = document.getElementById("username");
+        const passwordInput = document.getElementById("password");
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+
+            const loginForm = document.getElementById("loginForm");
+            const loginButtonInForm = loginForm.querySelector("button");
+            const loginLogoutButton = document.getElementById("loginLogoutButton");
+            const content = document.getElementById("content");
+
+            loginLogoutButton.addEventListener('click', () => {
+                if (isLoggedIn) {
+                    isLoggedIn = false;
+                    loginLogoutButton.textContent = "Login";
+                    loginForm.classList.add('d-none');
+                    loginLogoutButton.classList.remove('d-none');
+                    content.classList.add('d-none');
+                    users.classList.add('d-none');
+                    analisist.classList.add('d-none');
+
+                    sessionStorage.removeItem('token');
+
+                    if ((estado.textContent).includes("Paso 4/4")) {
+                        document.getElementById("userMessageSend").value = '{"nombre": "Juan", "edad": 30, "ciudad": "Madrid"}';
+                        document.getElementById("userMessageReceive").value = "";
+                        document.getElementById("analistMessageReceive").value = "";
+                        document.getElementById("analisisMessageSend").value = '{"analisis_mensaje":"Nombre: Juan, Edad: 30, Ciudad: Madrid","fecha_análisis":"2021-05-01 12:00:00","analista":"Analista 1","resultado":"Nombres de personas: 1, Nombres de ciudades: 1, Edades: 1"}';
+                        document.getElementById("idLabel").value = "";
+                        document.getElementById("idInput").value = "";
+                    }
+                    estado.textContent = "Logout";
+                } else {
+                    loginForm.classList.remove('d-none');
+                    loginLogoutButton.classList.add('d-none');
+                    content.classList.remove('d-none');
+                    estado.textContent = "Login";
+                    const loginButtonInForm = loginForm.querySelector("button");
+                    loginButtonInForm.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        
+                        const username = usernameInput.value;
+                        const password = passwordInput.value;
+
+                        if (!username || !password) {
+                            estado.textContent = "Debe ingresar usuario y contraseña";
+                            return;
+                        }
+                        login();
+                    });
+                }
+            });
+            const sendButtonUser = document.querySelector("#sendMessageFormUser button");
+            sendButtonUser.addEventListener("click", sendMessageUser);
+
+            const receiveButtonUser = document.querySelector("#receiveMessageFormUser button");
+            receiveButtonUser.addEventListener("click", receiveMessageUser);
+
+            const sendButtonAnalist = document.querySelector("#sendMessageFormAnalist button");
+            sendButtonAnalist.addEventListener("click", sendMessageAnalist);
+
+            const receiveButtonAnalist = document.querySelector("#receiveMessageFormAnalist button");
+            receiveButtonAnalist.addEventListener("click", receiveMessageAnalist);
+
+            const idInput = document.getElementById("idInput");
+            idInput.addEventListener("change", function () {
+                sessionStorage.setItem('id_solicitud', idInput.value);
+            });
+
+            const idLabel = document.getElementById("idLabel");
+            idLabel.addEventListener("change", function () {
+                sessionStorage.setItem('id_solicitud', idLabel.value);
+            });
+        });
+
+        const login = async () => {
+
+            const username = usernameInput.value;
+            const password = passwordInput.value;
+
+            const loginForm = document.getElementById("loginForm");
+            const loginButtonInForm = loginForm.querySelector("button");
+            const loginLogoutButton = document.getElementById("loginLogoutButton");
+            const content = document.getElementById("content");
+
+            const encodedUsername = encodeURIComponent(username);
+            const encodedPassword = encodeURIComponent(password);
+
+            loginButtonInForm.disabled = true;
+
+            const url = `/login?username=${encodedUsername}&password=${encodedPassword}`;
+
+            try {
+                const response = await fetch(url, {method: 'POST'});
+                const data = await response.json();
+                if (response.ok) {
+                    sessionStorage.setItem('token', data.access_token);
+                    console.log(data.access_token)
+                    isLoggedIn = true;
+                    loginForm.classList.add('d-none');
+                    loginLogoutButton.textContent = "Logout";
+                    loginLogoutButton.classList.remove('d-none');
+                    content.classList.remove('d-none');
+                    let role = document.querySelector('input[name="role"]:checked').value;
+                    if (role == "user") {
+                        users.classList.remove('d-none');
+                        analisist.classList.add('d-none');
+                        estado.textContent = "Login like User";
+                    } else {
+                        users.classList.add('d-none');
+                        analisist.classList.remove('d-none');
+                        estado.textContent = "Login like Analyst";
+                    }
+                } else {
+                    content.classList.add('d-none');
+                    estado.textContent = "Error en proceso de login";
+                }
+            }
+            catch (error) {
+                console.error('Error:', error);
+                estado.textContent = "Error en proceso de login";
+            } finally {
+                loginButtonInForm.disabled = false;
+            }
+        }
+
+        const sendMessageUser = () => sendMessage("userMessageSend", "sendButtonUser", "/enviar_para_analisis", "Paso 1/4 Solicitud para análisis enviada");
+
+        const sendMessageAnalist = () => sendMessage("analisisMessageSend", "sendButtonAnalist", "/enviar_resultado_del_analisis", "Paso 3/4 Solicitud con respuesta del análisis enviada", "idInput");
+
+        const sendMessage = async (messageInputId, sendButtonId, url, successMessage, idInputId = null) => {
+            const messageInput = document.getElementById(messageInputId);
+            const message = messageInput.value;
+            const sendButton = document.getElementById(sendButtonId);
+
+            sendButton.disabled = true;
+            const token = sessionStorage.getItem('token');
+            if (token == null) {
+                estado.textContent = "Debe hacer login";
+                sendButton.disabled = false;
+                return;
+            }
+            let id_solicitud = null;
+            if (idInputId) {
+                const idInput = document.getElementById(idInputId);
+                id_solicitud = sessionStorage.getItem('id_solicitud');
+                if (id_solicitud == null) {
+                    if (idInput.value == null) {
+                        estado.textContent = "Debe ingresar un id de solicitud";
+                        sendButton.disabled = false;
+                        return;
+                    }
+                    else {
+                        id_solicitud = idInput.value;
+                    }
+                }
+                url += `/${id_solicitud}`;
+            }
+            console.log('Sending message:', message);
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({message})
+                });
+                if (!response.ok) {
+                    estado.textContent = "Error en el envío de la solicitud";
+                    throw new Error(`Solicitud:${response.status}`);
+                }
+                const data = await response.json();
+                console.log("Server response:", data);
+                if (document.getElementById("idLabel")) {
+                    document.getElementById("idLabel").value = data.id;
+                }
+                estado.textContent = successMessage;
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                sendButton.disabled = false;
+                messageInput.value = "";
+            }
+        }
+
+        const receiveMessageUser = async () => receiveMessage('/recibir_resultado_final_analisis/', 'userMessageReceive', 'receiveButtonUser', 'Paso 4/4 Solicitud recibida. Fin del proceso', 'Error en la recepción de la solicitud');
+
+        const receiveMessageAnalist = async () => receiveMessage('/recibir_mensaje_para_analisis/', 'analistMessageReceive', 'receiveButtonAnalist', 'Paso 2/4 Solicitud recibida. En proceso de análisis', 'Error en la recepción de la solicitud');
+
+        const receiveMessage = async (url, messageInputId, receiveButtonId, successMessage, errorMessage) => {
+            const messageInput = document.getElementById(messageInputId);
+            const receiveButton = document.getElementById(receiveButtonId);
+            const idInput = document.getElementById("idInput");
+
+            receiveButton.disabled = true;
+            const token = sessionStorage.getItem('token');
+            let id_request = sessionStorage.getItem('id_solicitud');
+
+            if (id_request == null) {
+                if (idInput.value == null) {
+                    estado.textContent = errorMessage;
+                    receiveButton.disabled = false;
+                    return;
+                } else {
+                    id_request = idInput.value;
+                }
+            }
+
+            url = url + id_request;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    },
+                    timeout: 2000
+                });
+
+                if (!response.ok) {
+                    estado.textContent = errorMessage;
+                    throw new Error(`${errorMessage}:${response.status}`);
+                }
+
+                const data = await response.json();
+                const decodedMessage = atob(data.mensaje);
+                document.getElementById("idLabel").value = data.id;
+                messageInput.value = decodedMessage;
+                estado.textContent = successMessage;
+
+            } catch (error) {
+                console.error('Error:', error);
+                messageInput.value = "No hay mensajes";
+                estado.textContent = errorMessage;
+            } finally {
+                receiveButton.disabled = false;
+            }
+        }
+
+    </script>
+
+
+
+</body>
+
+</html>

@@ -48,34 +48,34 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
    main.py
    requeriment.txt
    ```
-   
+
    - Crear el entorno para python y activarlo
-   
+
       ```powershell
       py -3.9 -m venv env
       ```
-   
+
       Actualizar e Instalar las librerias para el proyecto
-   
+
       ```powershell
       py -m pip install --upgrade pip
       pip install fastapi uvicorn aio_pika python-dotenv httpx pyjwt asynctest
-
-
+      ```
+   
    - Crear las variables del entorno en su fichero .env
-     
-     ```python
-     RABBITMQ_USERNAME=usuario
-     RABBITMQ_PASSWORD=clave
-     RABBITMQ_HOST=url a rabbitMQ
-     RABBITMQ_VHOST=\
-     RABBITMQ_PORT=5672
-     SECRET_KEY = "mikeysecreta"
-     ALGORITHM = "HS256"
-     ACCESS_TOKEN_EXPIRE_MINUTES = 30
-     API_USERNAME=usuario api
-     API_PASSWORD=clave del usuario api
-     ```
+   
+      ```python
+       RABBITMQ_USERNAME=usuario
+       RABBITMQ_PASSWORD=clave
+       RABBITMQ_HOST=url a rabbitMQ
+       RABBITMQ_VHOST=\
+       RABBITMQ_PORT=5672
+       SECRET_KEY = "mikeysecreta"
+       ALGORITHM = "HS256"
+       ACCESS_TOKEN_EXPIRE_MINUTES = 30
+       API_USERNAME=usuario api
+       API_PASSWORD=clave del usuario api
+      ```
 
 2. Crear los servicios
    - Los servicios que gestionarán la seguridad OAuth2 y JWT
@@ -480,13 +480,11 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
              if rabbitmq is not None:
                  await rabbitmq.close()
         
-     
-     
      @route.get("/", response_class=RedirectResponse, status_code=302,include_in_schema=False)
      async def redirect_to_docs():
          return "/docs"        
      ```
-
+   
 6. Implementar el Inicializador
 
    - Cree el punto de conexión entre la entrada inicial y los demás componentes del proyecto
@@ -904,7 +902,7 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
      
      > **Nota:** Si la pruebas son correctas puede continuar
 
-### 2. Pruebas en Postman para el middleware
+### 2. Pruebas en Postman para el middleware con automatización de solicitudes
 
 1. Crear el entorno
 
@@ -919,7 +917,7 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
    ```bash
    AnálisisSolicitudes
    ```
-   
+
 3. Crear las variables de entorno
 
    | Variable | Initial Value          |
@@ -927,7 +925,7 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
    | api_url  | http://localhost:20000 |
    | username | su usuario             |
    | password | su contraseña          |
-   
+
 4. Crear Solicitudes
 
    ```
@@ -938,21 +936,21 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
    ├─── POST Envío resultado del análisis
    ├─── GET Recepción Final del resultado del análisis
    ```
-   
+
    - **Logín**
-   
+
      `POST` **login**
-   
+
      **url** `{{api_url}}/token`
-   
+
      ```
      Params:
      username {{username}}
      password {{rabbitmq_password}}
      ```
-   
+
      **Test  y automatización**
-   
+
      ```javascript
      // En el script de tests de la solicitud POST /token
      pm.test("Extraer y almacenar el token", function () {
@@ -967,22 +965,22 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
        pm.response.to.have.status(200);
      });
      ```
-   
+
    - **Envío para análisis**
-   
+
      `POST` **Envío para análisis**
-   
+
      **url** `{{api_url}}/publicar_mensaje_solicitud`
-   
+
      ```
      Authorization:
      Bearer Token {{token}}
      ```
-   
+
      **Nota:** No ha creado directamente la variable de entorno `token` esta será creada cuando envíe la solicitud de `Login`
-   
+
      **Body** -raw -json
-   
+
      ```json
      {
          "nombre": "Juan",
@@ -990,93 +988,116 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
          "ciudad": "Madrid"
      }
      ```
-   
+
      **Test  y automatización**
-   
+
      ```javascript
      // Analizar el cuerpo JSON de la respuesta
      var responseBody = pm.response.json();
      
      // Extraer el valor de id_solicitud
-     var idSolicitud = responseBody.id_solicitud;
+     var idSolicitud = responseBody.id;
      
      // Guardar el valor en la variable de entorno
      pm.environment.set("id_solicitud", idSolicitud);
      
      // Log para verificar
      console.log("ID de solicitud almacenado en la variable de entorno: " + idSolicitud);
+     
+     pm.test("La ID de solicitud en la respuesta es válida", function () {
+         // Verificar que idSolicitud no sea undefined o null
+         pm.expect(idSolicitud).to.not.be.undefined;
+         pm.expect(idSolicitud).to.not.be.null;
+     });
      ```
-   
+
       **Nota:** No ha creado una variable de entorno para `id_solicitud` de manera directa, pero la necesitará para comprobar las otras solicitudes de la API Rest.
-   
+
    - **Recepción solicitud para análisis**
-   
+
      `GET` **Recepción solicitud para análisis**
-   
+
      **url** `{{url_api}}/consumir_mensaje_solicitud/{{id_solicitud}}`
-   
+
      ```
      Authorization:
      Bearer Token {{token}}
      ```
-   
+
      **Test y automatización**
-   
+
      ```javascript
      // Obtener el cuerpo JSON de la solicitud
      var responseBody = pm.response.json();
      
-     // Decodificar el mensaje de base64 a JSON
-     var mensajeBase64 = responseBody.mensaje;
-     var mensajeDecodificado = atob(mensajeBase64);
-     var mensajeJSON = JSON.parse(mensajeDecodificado);
+     // Check if mensaje exists in the response
+     if (responseBody.hasOwnProperty('mensaje')) {
+         // Decodificar el mensaje de base64 a JSON
+         var mensajeBase64 = responseBody.mensaje;
+         var mensajeDecodificado = atob(mensajeBase64);
+         var mensajeJSON = JSON.parse(mensajeDecodificado);
      
-     // Realizar el análisis y conformar el JSON de resultado
-     var test_message = {
-         "analisis_mensaje": "Nombre: " + mensajeJSON.nombre + ", Edad: " + mensajeJSON.edad + ", Ciudad: " + mensajeJSON.ciudad,
-         "fecha_análisis": "2021-05-01 12:00:00",
-         "analista": "Analista 1",
-         "resultado": "Nombres de personas: 1, Nombres de ciudades: 1, Edades: 1"
-     };
+         // Realizar el análisis y conformar el JSON de resultado
+         var test_message = {
+             "analisis_mensaje": "Nombre: " + mensajeJSON.nombre + ", Edad: " + mensajeJSON.edad + ", Ciudad: " + mensajeJSON.ciudad,
+             "fecha_análisis": "2021-05-01 12:00:00",
+             "analista": "Analista 1",
+             "resultado": "Nombres de personas: 1, Nombres de ciudades: 1, Edades: 1"
+         };
      
-     // Log para verificar
-     console.log("Resultado del análisis:", test_message);
+         // Log para verificar
+         console.log("Resultado del análisis:", test_message);
      
-     // Guardar el resultado en una variable de entorno (opcional)
-     pm.environment.set("resultado_analisis", JSON.stringify(test_message));
+         // Guardar el resultado en una variable de entorno (opcional)
+         pm.environment.set("resultado_analisis", JSON.stringify(test_message));
      
-     // Modificar el cuerpo de la respuesta con el nuevo JSON
-     pm.response.json(test_message);
+         // Modificar el cuerpo de la respuesta con el nuevo JSON
+         pm.response.json(test_message);
+     
+         pm.test("La variable 'nombre' en el mensaje JSON no es nula", function () {
+             pm.expect(mensajeJSON.nombre).to.not.be.null;
+         });
+     
+         pm.test("La variable 'edad' en el mensaje JSON no es nula", function () {
+             pm.expect(mensajeJSON.edad).to.not.be.null;
+         });
+     
+         pm.test("La variable 'ciudad' en el mensaje JSON no es nula", function () {
+             pm.expect(mensajeJSON.ciudad).to.not.be.null;
+         });
+     } else {
+         console.log("No message to process");
+     }
      ```
-   
+
      **Nota:** La automatización de la prueba requerirá que recuperemos de la recepción para análisis el JSON, este vendrá en base64, lo decodificaremos y simularemos una realización de análisis y conformación del mensaje de resultado del análisis.
-   
+
    - **Envío de resultados del análisis**
-   
+
      `POST` **Envío de resultado del análisis**
-   
+
      **url** `{{url_api}}/publicar_mensaje_respuesta/{{id_solicitud}}`
-   
+
      ```json
      Authorization:
      Bearer Token {{token}}
      ```
-   
+
      **Body** -raw -json
-   
+
      ```json
      {{resultado_analisis}}
      ```
-   
+
      **Test y automatización**
-   
+
      ```json
      try {
          // Analizar el cuerpo JSON de la respuesta
          var responseBody = pm.response.json();
      
          // Extraer el valor de id_solicitud de la respuesta si existe
-         var idSolicitudEnRespuesta = responseBody && responseBody.id_solicitud;
+         var idSolicitudEnRespuesta = responseBody && responseBody.id;
      
          // Obtener el valor de id_solicitud almacenado en la variable de entorno
          var idSolicitudEnVariable = pm.environment.get("id_solicitud");
@@ -1089,103 +1110,101 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
              console.log("La solicitud en la respuesta NO coincide con la almacenada en la variable de entorno o alguno de los valores es nulo.");
              // Realizar acciones adicionales si la solicitud no coincide o algún valor es nulo
          }
+         pm.test("El valor de 'id_solicitud' en la respuesta no es nulo", function () {
+             pm.expect(idSolicitudEnRespuesta).to.not.be.null;
+         });
+     
+         pm.test("El valor de 'id_solicitud' almacenado en la variable de entorno no es nulo", function () {
+             pm.expect(idSolicitudEnVariable).to.not.be.null;
+         });
+     
+         pm.test("Los valores de 'id_solicitud' coinciden", function () {
+             pm.expect(idSolicitudEnRespuesta).to.equal(idSolicitudEnVariable);
+         });
+     
+         // Realizar acciones adicionales si la solicitud coincide
+         if (pm.response.code === 200) {
+             pm.test("La solicitud en la respuesta coincide con la almacenada en la variable de entorno.");
+             // Puedes agregar más afirmaciones o acciones según sea necesario
+         } else {
+             pm.test("La solicitud en la respuesta NO coincide con la almacenada en la variable de entorno o alguno de los valores es nulo.");
+             // Puedes agregar más afirmaciones o acciones según sea necesario
+         }
      } catch (error) {
          console.log("Error al procesar la respuesta JSON:", error.message);
          // Manejar el error según sea necesario
      }
      ```
-   
+
      **Nota:** En el proceso de respuesta del análisis, deberán coincidir el id de la solicitud, tanto de envío como de respuesta.
-   
+
    -  **Recepción Final del resultado del análisis**
-   
+
      `GET` **Recepción Final del resultado del análisis**
-   
+
      **url** `{{url_api}}/consumir_mensaje_respuesta/{{id_solicitud}}`
-   
+
      ```
      Authorization:
      Bearer Token {{token}}
      ```
-   
+
      **Test y automatización**
-   
+
      ```json
-     // Obtener el cuerpo JSON de la solicitud
-     var responseBody = pm.response.json();
+     try
+     {
+         // Obtener el cuerpo JSON de la solicitud
+         var responseBody = pm.response.json();
      
-     // Check if mensaje exists in the response body
-     if (responseBody.hasOwnProperty('mensaje')) {
-         // Decodificar el mensaje de base64 a JSON
-         var mensajeBase64 = responseBody.mensaje;
-         var mensajeDecodificado = atob(mensajeBase64);
-         var respuestaFinalJSON = JSON.parse(mensajeDecodificado);
+         // Check if mensaje exists in the response body
+         if (responseBody.hasOwnProperty('mensaje')) {
+             // Decodificar el mensaje de base64 a JSON
+             var mensajeBase64 = responseBody.mensaje;
+             var mensajeDecodificado = atob(mensajeBase64);
+             var respuestaFinalJSON = JSON.parse(mensajeDecodificado);
      
-         // Log para verificar
-         console.log("Resultado de la resupuesta final:", respuestaFinalJSON);
+             // Log para verificar
+             console.log("Resultado de la resupuesta final:", respuestaFinalJSON);
      
-         // Guardar el resultado en una variable de entorno (opcional)
-         pm.environment.set("resultado_final", JSON.stringify(respuestaFinalJSON));
+             // Guardar el resultado en una variable de entorno (opcional)
+             pm.environment.set("resultado_final", JSON.stringify(respuestaFinalJSON));
      
-         // Modificar el cuerpo de la respuesta con el nuevo JSON
-         pm.response.json(respuestaFinalJSON);
-     } else {
-         console.log('mensaje not found in the response body');
+             pm.test("La variable 'nombre' en el mensaje JSON no es nula", function () {
+                 pm.expect(respuestaFinalJSON.nombre).to.not.be.null;
+             });
+     
+             pm.test("La variable 'edad' en el mensaje JSON no es nula", function () {
+                 pm.expect(respuestaFinalJSON.edad).to.not.be.null;
+             });
+             
+             // Modificar el cuerpo de la respuesta con el nuevo JSON
+             pm.response.json(respuestaFinalJSON);
+         } else {
+             console.log('mensaje not found in the response body');
+         }
+     } catch (error) {
+         console.log("Error al procesar la respuesta JSON:", error.message);
+         // Manejar el error según sea necesario
      }
      ```
-   
+     
      **Nota:** La recuperación del resultado final del análisis, deberá decodificarse para recuperar el mensaje. Si este es legible y en el estandar de lo esperado, la prueba será válida
 
-### 3. Automatización de solicitudes
+5. Revisión de resultados
 
-1. Cree los script de automatización de pruebas para corroborar cada una de las solicitudes del proyecto. Postman gestiona en una única colección, la gestión directa hacia el servidor `RabbitMQ` y a su `API Rest`
-
-   - **Test** en **Obtener Login** `POST` **login**
-
-     ```javascript
-     // En el script de tests de la solicitud POST /token
-     pm.test("Extraer y almacenar el token", function () {
-         // Parsear el cuerpo de la respuesta JSON
-         var jsonResponse = pm.response.json();
-     
-         // Almacenar el token en una variable de entorno
-         pm.environment.set("token", jsonResponse.access_token);
-     });
-     
-     pm.test("Obtener token", function () {
-       pm.response.to.have.status(200);
-     });
-     ```
-     
-   - **Test** en **Enviar Mensaje** `POST` **Send Message**
-   
-     ```javascript
-     pm.test("Obtener token", function () {
-       pm.response.to.have.status(200);
-     });
-     ```
-     
-   - **Tests** en **Recibir Mensaje** `GET` **Receive Message**
-   
-     ```javascript
-     pm.test("Obtener token", function () {
-       pm.response.to.have.status(200);
-     });
-     ```
-   
-   ### 4. Revision de pruebas
-   
    - Ejecute las pruebas de la colección
-   
-     ![02](img/02.png)
-   
+
+     ![](img/02.png)
+
    - Revise el resultado
-   
+
      ![](img/03.png)
-   
+
    - Revise el resumen detallado
-   
+
      ![](img\04.png)
+
 
 
 
@@ -1216,18 +1235,19 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
      py -m pip install --upgrade pip
      pip install fastapi uvicorn jinja2 httpx pyjwt python-dotenv
      ```
-
-
-   - cree las variables del entorno en su fichero .env
-
-     ```python
-     API_URL=http://<fqdn or ip>:port
-     IP_HOST=<ip>
-     ```
+   
+   
+      - cree las variables del entorno en su fichero `.env`
+   
+        ```python
+        API_URL=http://<fqdn or ip>:port
+        IP_HOST=<ip>
+        ```
+   
 
 2. Crear el programa principal
 
-   - Crear script del programa agestor para manipulación de páginas, solicitudes al middleware
+   - Crear script del programa gestor para manipulación de páginas, solicitudes al middleware
 
      ```python
      import json
@@ -1279,9 +1299,9 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
              try:
                  data = r.json()
                  print("post del front-end_enviando:",data)
-                 id_sol = data.get('id_solicitud')
+                 id_sol = data.get('id')
                  response = JSONResponse(content=data)
-                 response.set_cookie(key="id_solicitud", value=str(id_sol), secure=False)  # Almacena el token en las cookies
+                 response.set_cookie(key="id_solicitud", value=id_sol, secure=False)  # Almacena el token en las cookies
                  return response
              except:
                  return JSONResponse(content={'message': 'No response body'})
@@ -1301,7 +1321,7 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
              try:
                  data = r.json()
                  print("get del front-end_recibiendo:",data)
-                 id_sol = data.get('id_solicitud')
+                 id_sol = data.get('id')
                  if id_request == id_sol:
                      print("son iguales")
                  else:
@@ -1324,7 +1344,7 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
              try:
                  data = r.json()
                  print("get del front-end_recibiendo_analista:",data)
-                 id_sol = data.get('id_solicitud')
+                 id_sol = data.get('id')
                  response = JSONResponse(content=data)
                  return response
              except:
@@ -1332,7 +1352,7 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
          else:
              return JSONResponse(content={'message': 'No response body'})
      
-     @app.post("/enviar_resultado_del_analisis")
+     @app.post("/enviar_resultado_del_analisis/{id_request}")
      async def enviar_resultado_del_analisis(request: Request, message: str = Body(...)):    
          token = request.headers.get('Authorization')
          if not token:
@@ -1342,12 +1362,12 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
          message = json.loads(message)
          id_request = request.cookies.get('id_solicitud')
          async with httpx.AsyncClient() as client:
-             r = await client.post(f'{url_base}/publicar_mensaje_respuesta/{id-request}',
+             r = await client.post(f'{url_base}/publicar_mensaje_respuesta/{id_request}',
                                    json={'message':message}, headers=headers)
          if r.content:
              try:
                  data = r.json()
-                 id_sol = data.get('id_solicitud')
+                 id_sol = data.get('id')
                  response = JSONResponse(content=data)
                  if id_request == id_sol:
                      print("son iguales")
@@ -1359,6 +1379,9 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
                  return JSONResponse(content={'message': 'No response body'})
          else:
              return JSONResponse(content={'message': 'No response body'})
+         
+             
+     
      
      if __name__ == "__main__":
          import uvicorn
@@ -1388,7 +1411,7 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
          <div class="container mt-4">
              <div class="row">
                  <div class="col-md-6">
-                     <form id="loginForm" style="display: none;">
+                     <form id="loginForm" class="d-none">
                          <div class="form-group">
                              <label for="username">Username:</label>
                              <input type="text" class="form-control" id="username" required>
@@ -1408,53 +1431,58 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
                                  </label>
                              </div>
                          </div>
-                         <button type="button" class="btn btn-primary" onclick="login()">Login</button>
+                         <button type="button" class="btn btn-primary">Login</button>
                      </form>
-                     <button id="loginLogoutButton" type="button" class="btn btn-primary" style="display: block;"
-                         onclick="toggleLoginLogout()">Login</button>
+                     <button id="loginLogoutButton" type="button" class="btn btn-primary">Login</button>
                  </div>
              </div>
-             <div id="content" style="display: none;">
-     
-                 <div id="analisist" style="display: none;">
-                     <input type="text" class="form-control" id="idInput" placeholder="Enter id_request">
+             <div id="content" class="d-none">
+                 <div id="analisist" class="d-none">
+                     <div clas="alert alert-primary" role="alert">
+                         <label for="idInput" class="form-control">Id solicitud</label>
+                         <input type="text" class="form-control" id="idInput" placeholder="Enter id_request">
+                     </div>
                      <div class="mt-4">
                          <h2>Receive Message for analisis</h2>
                          <form id="receiveMessageFormAnalist">
                              <div class="form-group">
-                                 <label for="message">Message:</label>
+                                 <label for="analistMessageReceive">Message:</label>
                                  <textarea class="form-control" id="analistMessageReceive" rows="5" readonly
                                      style="font-size: 24px;"></textarea>
                              </div>
-                             <button id="receiveButtonAnalist" type="button" class="btn btn-info"
-                                 onclick="receiveMessageAnalist()">Receive
+                             <button id="receiveButtonAnalist" type="button" class="btn btn-info">Receive
                                  Message</button>
                          </form>
                      </div>
                      <div class="mt-4">
-                         <h2>Send Message for analisys</h2>
+                         <h2>Send Answer of the analisys result</h2>
                          <form id="sendMessageFormAnalist">
                              <div class="form-group">
-                                 <label for="message">Message:</label>
-                                 <input type="text" class="form-control" id="analisisMessageSend" required>
+                                 <label for="analisisMessageSend">Message:</label>
+                                 <input type="text" class="form-control" id="analisisMessageSend"
+                                     value='{"analisis_mensaje":"Nombre: Juan, Edad: 30, Ciudad: Madrid","fecha_análisis":"2021-05-01 12:00:00","analista":"Analista 1","resultado":"Nombres de personas: 1, Nombres de ciudades: 1, Edades: 1"}'
+                                     required>
                              </div>
-                             <button id="sendButtonAnalist" type="button" class="btn btn-info"
-                                 onclick="sendMessageAnalist()">Send
+                             <button id="sendButtonAnalist" type="button" class="btn btn-info">Send
                                  Message</button>
                          </form>
                      </div>
                  </div>
      
-                 <div id="users" style="display: none;">
-                     <label class="label label-primary" id="idLabel"></label>
+                 <div id="users" class="d-none">
+                     <div clas="alert alert-primary" role="alert">
+                         <label for="idLabel" class="form-control">Id solicitud</label>
+                         <input type="text" class="form-control" id="idLabel">
+                     </div>
                      <div class="mt-4">
                          <h2>Send Message for Analisis</h2>
                          <form id="sendMessageFormUser">
                              <div class="form-group">
-                                 <label for="message">Message:</label>
-                                 <input type="text" class="form-control" id="userMessageSend" required>
+                                 <label for="userMessageSend">Message:</label>
+                                 <input type="text" class="form-control" id="userMessageSend"
+                                     value='{"nombre": "Juan", "edad": 30, "ciudad": "Madrid"}' required>
                              </div>
-                             <button id="sendButtonUser" type="button" class="btn btn-info" onclick="sendMessageUser()">Send
+                             <button id="sendButtonUser" type="button" class="btn btn-info">Send
                                  Message</button>
                          </form>
                      </div>
@@ -1462,262 +1490,285 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
                          <h2>Receive final analysis result</h2>
                          <form id="receiveMessageFormUser">
                              <div class="form-group">
-                                 <label for="message">Message:</label>
+                                 <label for="userMessageReceive">Message:</label>
                                  <textarea class="form-control" id="userMessageReceive" rows="5" readonly
                                      style="font-size: 24px;"></textarea>
                              </div>
-                             <button id="receiveButtonUser" type="button" class="btn btn-info"
-                                 onclick="receiveMessageUser()">Receive
-                                 Message</button>
+                             <button id="receiveButtonUser" type="button" class="btn btn-info">Receive Message</button>
                          </form>
                      </div>
                  </div>
              </div>
          </div>
-     
+         <footer class="footer mt-auto py-3">
+             <div class="card">
+                 <div class="card-header">
+                     Estado
+                 </div>
+                 <div class="card-body">
+                     <h5 id="status" class="card-title">Logout</h5>
+                 </div>
+             </div>
+         </footer>
          <!-- Bootstrap JS and dependencies -->
          <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
          <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
          <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
      
          <script>
-             let isLoggedIn = false;
-             let shownMessages = new Set();
-             //let messageInterval; 
      
-             function toggleLoginLogout() {
+             let isLoggedIn = false;
+     
+             const users = document.getElementById("users");
+             const analisist = document.getElementById("analisist");
+             const estado = document.getElementById("status");
+     
+             const usernameInput = document.getElementById("username");
+             const passwordInput = document.getElementById("password");
+     
+             document.addEventListener('DOMContentLoaded', (event) => {
+     
                  const loginForm = document.getElementById("loginForm");
+                 const loginButtonInForm = loginForm.querySelector("button");
                  const loginLogoutButton = document.getElementById("loginLogoutButton");
                  const content = document.getElementById("content");
-                 const users = document.getElementById("users");
-                 const analisist = document.getElementById("analisist");
-                 if (isLoggedIn) {
-                     // Si el usuario está conectado, ocultar el formulario y cambiar el texto del botón a "Show Login"
-                     loginForm.style.display = "none";
-                     loginLogoutButton.textContent = "Login";
-                     content.style.display = "none";
-                     users.style.display = "none";
-                     analisist.style.display = "none";
-                     sessionStorage.removeItem('token');
-                     //clearInterval(messageInterval);
-                 } else {
-                     // Si el usuario no está conectado, mostrar el formulario y cambiar el texto del botón a "Logout"
-                     loginForm.style.display = "block";
-                     loginLogoutButton.style.display = "none";
-                     content.style.display = "block";
      
-                 }
+                 loginLogoutButton.addEventListener('click', () => {
+                     if (isLoggedIn) {
+                         isLoggedIn = false;
+                         loginLogoutButton.textContent = "Login";
+                         loginForm.classList.add('d-none');
+                         loginLogoutButton.classList.remove('d-none');
+                         content.classList.add('d-none');
+                         users.classList.add('d-none');
+                         analisist.classList.add('d-none');
      
-                 isLoggedIn = !isLoggedIn;
+                         sessionStorage.removeItem('token');
      
-             }
+                         if ((estado.textContent).includes("Paso 4/4")) {
+                             document.getElementById("userMessageSend").value = '{"nombre": "Juan", "edad": 30, "ciudad": "Madrid"}';
+                             document.getElementById("userMessageReceive").value = "";
+                             document.getElementById("analistMessageReceive").value = "";
+                             document.getElementById("analisisMessageSend").value = '{"analisis_mensaje":"Nombre: Juan, Edad: 30, Ciudad: Madrid","fecha_análisis":"2021-05-01 12:00:00","analista":"Analista 1","resultado":"Nombres de personas: 1, Nombres de ciudades: 1, Edades: 1"}';
+                             document.getElementById("idLabel").value = "";
+                             document.getElementById("idInput").value = "";
+                         }
+                         estado.textContent = "Logout";
+                     } else {
+                         loginForm.classList.remove('d-none');
+                         loginLogoutButton.classList.add('d-none');
+                         content.classList.remove('d-none');
+                         estado.textContent = "Login";
+                         const loginButtonInForm = loginForm.querySelector("button");
+                         loginButtonInForm.addEventListener('click', (event) => {
+                             event.preventDefault();
+                             
+                             const username = usernameInput.value;
+                             const password = passwordInput.value;
      
-             function login() {
-                 const username = document.getElementById("username").value;
-                 const password = document.getElementById("password").value;
-                 const loginButton = document.getElementById("loginLogoutButton");
+                             if (!username || !password) {
+                                 estado.textContent = "Debe ingresar usuario y contraseña";
+                                 return;
+                             }
+                             login();
+                         });
+                     }
+                 });
+                 const sendButtonUser = document.querySelector("#sendMessageFormUser button");
+                 sendButtonUser.addEventListener("click", sendMessageUser);
+     
+                 const receiveButtonUser = document.querySelector("#receiveMessageFormUser button");
+                 receiveButtonUser.addEventListener("click", receiveMessageUser);
+     
+                 const sendButtonAnalist = document.querySelector("#sendMessageFormAnalist button");
+                 sendButtonAnalist.addEventListener("click", sendMessageAnalist);
+     
+                 const receiveButtonAnalist = document.querySelector("#receiveMessageFormAnalist button");
+                 receiveButtonAnalist.addEventListener("click", receiveMessageAnalist);
+     
+                 const idInput = document.getElementById("idInput");
+                 idInput.addEventListener("change", function () {
+                     sessionStorage.setItem('id_solicitud', idInput.value);
+                 });
+     
+                 const idLabel = document.getElementById("idLabel");
+                 idLabel.addEventListener("change", function () {
+                     sessionStorage.setItem('id_solicitud', idLabel.value);
+                 });
+             });
+     
+             const login = async () => {
+     
+                 const username = usernameInput.value;
+                 const password = passwordInput.value;
+     
+                 const loginForm = document.getElementById("loginForm");
+                 const loginButtonInForm = loginForm.querySelector("button");
+                 const loginLogoutButton = document.getElementById("loginLogoutButton");
+                 const content = document.getElementById("content");
      
                  const encodedUsername = encodeURIComponent(username);
                  const encodedPassword = encodeURIComponent(password);
      
-                 loginButton.disabled = true;
+                 loginButtonInForm.disabled = true;
      
                  const url = `/login?username=${encodedUsername}&password=${encodedPassword}`;
      
-                 fetch(url, {
-                     method: 'POST',
-                 })
-                     .then(response => response.json())
-                     .then(data => {
+                 try {
+                     const response = await fetch(url, {method: 'POST'});
+                     const data = await response.json();
+                     if (response.ok) {
                          sessionStorage.setItem('token', data.access_token);
-                         console.log(data.access_token);
-                         //showContent();
-                         document.getElementById("loginForm").style.display = "none";
-                         const loginLogoutButton = document.getElementById("loginLogoutButton");
-                         loginLogoutButton.textContent = "Logout";
-                         loginLogoutButton.style.display = "block";
-                         var role = document.querySelector('input[name="role"]:checked').value;
-                         if (role == "user") {
-                             document.getElementById("users").style.display = "block";
-                             document.getElementById("analisist").style.display = "none";
-                         } else {
-                             document.getElementById("users").style.display = "none";
-                             document.getElementById("analisist").style.display = "block";
-                         }
+                         console.log(data.access_token)
                          isLoggedIn = true;
-                         //messageInterval = setInterval(receiveMessage, 10000);
-                     })
-                     .catch((error) => {
-                         console.error('Error:', error);
-                     })
-                     .finally(() => {
-                         loginButton.disabled = false;
-                     });
-             }
-     
-             function sendMessageUser() {
-                 const messageInput = document.getElementById("userMessageSend");
-                 const message = messageInput.value;
-                 const sendButton = document.getElementById("sendButtonUser");
-     
-                 sendButton.disabled = true;
-                 var token = sessionStorage.getItem('token');
-                 console.log('Sending message:', message);
-                 const url = `/enviar_para_analisis`
-                 fetch(url, {
-                     method: 'POST',
-                     headers: {
-                         'Authorization': 'Bearer ' + token
-                     },
-                     body: JSON.stringify({message})
-                 })
-                     .then(response => {
-                         if (!response.ok) {
-                             throw new Error(`Solicitud:${response.status}`);
+                         loginForm.classList.add('d-none');
+                         loginLogoutButton.textContent = "Logout";
+                         loginLogoutButton.classList.remove('d-none');
+                         content.classList.remove('d-none');
+                         let role = document.querySelector('input[name="role"]:checked').value;
+                         if (role == "user") {
+                             users.classList.remove('d-none');
+                             analisist.classList.add('d-none');
+                             estado.textContent = "Login like User";
+                         } else {
+                             users.classList.add('d-none');
+                             analisist.classList.remove('d-none');
+                             estado.textContent = "Login like Analyst";
                          }
-                         return response.json();
-                     })
-                     .then(data => {
-                         console.log("Server response:", data);
-                         document.getElementById("idLabel").textContent = data.id_solicitud;
-                     })
-                     .catch((error) => {
-                         console.error('Error:', error);
-                     })
-                     .finally(() => {
-                         sendButton.disabled = false;
-                         messageInput.value = "";
-                     });
-             }
-     
-             function receiveMessageUser() {
-                 const messageInput = document.getElementById("messageReceiveUser");
-                 const receiveButton = document.getElementById("receiveButtonUser");
-     
-                 receiveButton.disabled = true;
-                 var token = sessionStorage.getItem('token');
-                 var id_request = sessionStorage.getItem('id_request');
-                 if (id_request == null) {
-                     id_request = "00000000-0000-0000-0000-000000000000";
-                     return
-                 }
-                 const url = `/recibir_resultado_final_analisis/${id_request}`
-                 fetch(url, {
-                     method: 'GET',
-                     headers: {
-                         'Authorization': 'Bearer ' + token
+                     } else {
+                         content.classList.add('d-none');
+                         estado.textContent = "Error en proceso de login";
                      }
-                 })
-                     .then(response => {
-                         if (!response.ok) {
-                             throw new Error(`Recepcion_resultado_final_análisis:${response.status}`);
-                         }
-                         return response.json();
-                     })
-                     .then(data => {
-                         console.log("resultado final analisis response:", data);
-                         messageInput.value = data.message;
-                     })
-                     .catch((error) => {
-                         console.error('Error:', error);
-                     })
-                     .finally(() => {
-                         receiveButton.disabled = false;
-                     });
-     
+                 }
+                 catch (error) {
+                     console.error('Error:', error);
+                     estado.textContent = "Error en proceso de login";
+                 } finally {
+                     loginButtonInForm.disabled = false;
+                 }
              }
      
-             function sendMessageAnalist() {
-                 const messageInput = document.getElementById("analisisMessageSend");
+             const sendMessageUser = () => sendMessage("userMessageSend", "sendButtonUser", "/enviar_para_analisis", "Paso 1/4 Solicitud para análisis enviada");
+     
+             const sendMessageAnalist = () => sendMessage("analisisMessageSend", "sendButtonAnalist", "/enviar_resultado_del_analisis", "Paso 3/4 Solicitud con respuesta del análisis enviada", "idInput");
+     
+             const sendMessage = async (messageInputId, sendButtonId, url, successMessage, idInputId = null) => {
+                 const messageInput = document.getElementById(messageInputId);
                  const message = messageInput.value;
-                 const sendButton = document.getElementById("sendButtonAnalist");
+                 const sendButton = document.getElementById(sendButtonId);
      
                  sendButton.disabled = true;
-                 var token = sessionStorage.getItem('token');
-                 var id_request = sessionStorage.getItem('id_request');
-                 console.log('Sending message:', message);
-                 const url = `/enviar_resultado_del_analisis/${id_request}`
-                 fetch(url, {
-                     method: 'POST',
-                     headers: {
-                         'Authorization': 'Bearer ' + token
-                     },
-                     body: JSON.stringify({message})
-                 })
-                     .then(response => {
-                         if (!response.ok) {
-                             throw new Error(`Solicitud:${response.status}`);
+                 const token = sessionStorage.getItem('token');
+                 if (token == null) {
+                     estado.textContent = "Debe hacer login";
+                     sendButton.disabled = false;
+                     return;
+                 }
+                 let id_solicitud = null;
+                 if (idInputId) {
+                     const idInput = document.getElementById(idInputId);
+                     id_solicitud = sessionStorage.getItem('id_solicitud');
+                     if (id_solicitud == null) {
+                         if (idInput.value == null) {
+                             estado.textContent = "Debe ingresar un id de solicitud";
+                             sendButton.disabled = false;
+                             return;
                          }
-                         return response.json();
-                     })
-                     .then(data => {
-                         console.log("Server response:", data);
+                         else {
+                             id_solicitud = idInput.value;
+                         }
+                     }
+                     url += `/${id_solicitud}`;
+                 }
+                 console.log('Sending message:', message);
      
-                     })
-                     .catch((error) => {
-                         console.error('Error:', error);
-                     })
-                     .finally(() => {
-                         sendButton.disabled = false;
-                         messageInput.value = "";
+                 try {
+                     const response = await fetch(url, {
+                         method: 'POST',
+                         headers: {
+                             'Authorization': 'Bearer ' + token
+                         },
+                         body: JSON.stringify({message})
                      });
+                     if (!response.ok) {
+                         estado.textContent = "Error en el envío de la solicitud";
+                         throw new Error(`Solicitud:${response.status}`);
+                     }
+                     const data = await response.json();
+                     console.log("Server response:", data);
+                     if (document.getElementById("idLabel")) {
+                         document.getElementById("idLabel").value = data.id;
+                     }
+                     estado.textContent = successMessage;
+                 } catch (error) {
+                     console.error('Error:', error);
+                 } finally {
+                     sendButton.disabled = false;
+                     messageInput.value = "";
+                 }
              }
      
-             function receiveMessageAnalist() {
-                 const messageInput = document.getElementById("analistMessageReceive");
-                 const receiveButton = document.getElementById("receiveButtonAnalist");
+             const receiveMessageUser = async () => receiveMessage('/recibir_resultado_final_analisis/', 'userMessageReceive', 'receiveButtonUser', 'Paso 4/4 Solicitud recibida. Fin del proceso', 'Error en la recepción de la solicitud');
+     
+             const receiveMessageAnalist = async () => receiveMessage('/recibir_mensaje_para_analisis/', 'analistMessageReceive', 'receiveButtonAnalist', 'Paso 2/4 Solicitud recibida. En proceso de análisis', 'Error en la recepción de la solicitud');
+     
+             const receiveMessage = async (url, messageInputId, receiveButtonId, successMessage, errorMessage) => {
+                 const messageInput = document.getElementById(messageInputId);
+                 const receiveButton = document.getElementById(receiveButtonId);
                  const idInput = document.getElementById("idInput");
      
                  receiveButton.disabled = true;
-                 var token = sessionStorage.getItem('token');
-                 var id_request = sessionStorage.getItem('id_request');
+                 const token = sessionStorage.getItem('token');
+                 let id_request = sessionStorage.getItem('id_solicitud');
+     
                  if (id_request == null) {
                      if (idInput.value == null) {
-                         alert("Debe ingresar un id de solicitud");
-                         return
-                     }
-                     else {
+                         estado.textContent = errorMessage;
+                         receiveButton.disabled = false;
+                         return;
+                     } else {
                          id_request = idInput.value;
                      }
-                     //id_request = "00000000-0000-0000-0000-000000000000";
-                     //return
                  }
-                 const url = `/recibir_mensaje_para_analisis/${id_request}`
-                 fetch(url, {
-                     method: 'GET',
-                     headers: {
-                         'Authorization': 'Bearer ' + token
-                     },
-                     timeout: 2000
-                 })
-                     .then(response => {
-                         if (!response.ok) {
-                             throw new Error(`Recepcion_para_analisis:${response.status}`);
-                         }
-                         return response.json();
-                     })
-                     .then(data => {
-                         console.log("Server response:", data);
-                         var decodedMessage = atob(data.mensaje);
-                         console.log("Decoded message:", decodedMessage);
-                         document.getElementById("idLabel").textContent = data.id_solicitud;
-                         document.getElementById("analistMessageReceive").value = decodedMessage;
-                     })
-                     .catch((error) => {
-                         console.error('Error:', error);
-                         document.getElementById("analistMessageReceive").value = "No hay mensajes";
-                     })
-                     .finally(() => {
-                         receiveButton.disabled = false;
+     
+                 url = url + id_request;
+     
+                 try {
+                     const response = await fetch(url, {
+                         method: 'GET',
+                         headers: {
+                             'Authorization': 'Bearer ' + token
+                         },
+                         timeout: 2000
                      });
+     
+                     if (!response.ok) {
+                         estado.textContent = errorMessage;
+                         throw new Error(`${errorMessage}:${response.status}`);
+                     }
+     
+                     const data = await response.json();
+                     const decodedMessage = atob(data.mensaje);
+                     document.getElementById("idLabel").value = data.id;
+                     messageInput.value = decodedMessage;
+                     estado.textContent = successMessage;
+     
+                 } catch (error) {
+                     console.error('Error:', error);
+                     messageInput.value = "No hay mensajes";
+                     estado.textContent = errorMessage;
+                 } finally {
+                     receiveButton.disabled = false;
+                 }
              }
+     
          </script>
      
      </body>
      
      </html>
      ```
-
+   
 4. Realice las comprobaciones 
 
    - Ejecute el programa en `front-end`
@@ -1742,4 +1793,4 @@ Este complejo escenario incluiremos automatización de pruebas con Postman en en
 
 # Conclusiones
 
-Con esta práctica final, ha podido realizar un ciclo completo de utilización desde un `front-end`, consumiendo los servicios de una `apirest` con la integración de un back-end `RabbitMQ` y aplicando los patrones de **Colas de trabajo**.
+Con esta práctica final, ha podido realizar un ciclo completo de utilización desde un `front-end`, consumiendo los servicios de una `apirest` con la integración de un back-end `RabbitMQ` y aplicando los patrones de **Colas de trabajo**.id
